@@ -1,0 +1,39 @@
+window.onload = async function() {
+    // Obtener usuario y contraseña desde sessionStorage
+    const username = sessionStorage.getItem("username");
+    const password = sessionStorage.getItem("password");
+
+    if (username && password) {
+        try {
+            // Obtener usuarios
+            const responseUsuarios = await fetch(`http://localhost:3000/usuarios?username=${username}&password=${password}`);
+            const dataUsuarios = await responseUsuarios.json();
+            if (dataUsuarios.success) {
+                const usuariosList = document.getElementById("usuariosList");
+                dataUsuarios.usuarios.forEach(usuario => {
+                    const li = document.createElement("li");
+                    li.textContent = usuario[0]; // El nombre de usuario
+                    usuariosList.appendChild(li);
+                });
+            } else {
+                console.error("Error obteniendo usuarios:", dataUsuarios.message);
+            }
+
+            // Obtener bases de datos
+            const responseBases = await fetch(`http://localhost:3000/basesdedatos?username=${username}&password=${password}`);
+            const dataBases = await responseBases.json();
+            if (dataBases.success) {
+                const basesList = document.getElementById("basesList");
+                dataBases.basesdedatos.forEach(base => {
+                    const li = document.createElement("li");
+                    li.textContent = base[0]; // El nombre de la base de datos
+                    basesList.appendChild(li);
+                });
+            } else {
+                console.error("Error obteniendo bases de datos:", dataBases.message);
+            }
+        } catch (error) {
+            console.error("Error de conexión:", error);
+        }
+    }
+}

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú Principal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .menu-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 80%;
+            max-width: 1200px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        .main-content {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .left-column,
+        .right-column {
+            width: 48%;
+            padding: 10px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            height: 300px;
+            overflow-y: auto;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #c82333;
+        }
+
+        /* Estilos para la barra de desplazamiento */
+        .scrollable-table {
+            max-height: 300px;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="menu-container">
+        <h2>Bienvenido, <span id="username">Usuario</span>!</h2>
+        <p>Has iniciado sesión correctamente.</p>
+    </div>
+
+    <div class="menu-container main-content">
+        <!-- Columna izquierda para los usuarios -->
+        <div class="left-column">
+            <h2>Usuarios en Oracle</h2>
+            <div class="scrollable-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usuarios-list">
+                        <tr><td>Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Columna derecha para las bases de datos -->
+        <div class="right-column">
+            <h2>Bases de Datos en Oracle</h2>
+            <div class="scrollable-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Base de Datos</th>
+                        </tr>
+                    </thead>
+                    <tbody id="basesdedatos-list">
+                        <tr><td>Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <button onclick="logout()">Cerrar sesión</button>
+
+    <script>
+        // Mostrar el nombre de usuario
+        const username = sessionStorage.getItem("username");
+        if (username) {
+            document.getElementById("username").textContent = username;
+        } else {
+            window.location.href = "index.html"; // Redirigir si no hay usuario
+        }
+
+        function logout() {
+            sessionStorage.removeItem("username");
+            window.location.href = "index.html";
+        }
+
+        // Función para obtener usuarios de la BD
+        async function cargarUsuarios() {
+            try {
+                const response = await fetch("http://localhost:3000/usuarios?username=" + username + "&password=" + sessionStorage.getItem("password"));
+                const data = await response.json();
+                const tbody = document.getElementById("usuarios-list");
+                tbody.innerHTML = ""; // Limpiar tabla
+                
+                if (data.success) {
+                    data.usuarios.forEach(user => {
+                        const row = `<tr><td>${user[0]}</td></tr>`;
+                        tbody.innerHTML += row;
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td>Error al cargar usuarios</td></tr>`;
+                }
+            } catch (error) {
+                document.getElementById("usuarios-list").innerHTML = `<tr><td>Error de conexión</td></tr>`;
+            }
+        }
+
+        // Función para obtener bases de datos
+        async function cargarBasesDeDatos() {
+            try {
+                const response = await fetch("http://localhost:3000/basesdedatos?username=" + username + "&password=" + sessionStorage.getItem("password"));
+                const data = await response.json();
+                const tbody = document.getElementById("basesdedatos-list");
+                tbody.innerHTML = ""; // Limpiar tabla
+
+                if (data.success) {
+                    data.basesdedatos.forEach(db => {
+                        const row = `<tr><td>${db[0]}</td></tr>`;
+                        tbody.innerHTML += row;
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td>Error al cargar bases de datos</td></tr>`;
+                }
+            } catch (error) {
+                document.getElementById("basesdedatos-list").innerHTML = `<tr><td>Error de conexión</td></tr>`;
+            }
+        }
+
+        // Llamar las funciones al cargar la página
+        cargarUsuarios();
+        cargarBasesDeDatos();
+    </script>
+
+</body>
+
+</html>
